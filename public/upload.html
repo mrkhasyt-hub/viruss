@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Загрузка файла</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Загрузить файл</h1>
+    <p>Выберите файл и нажмите "Загрузить"</p>
+  </header>
+
+  <main>
+    <div class="upload-container">
+      <input type="file" id="file" class="file-input">
+      <button class="btn upload-btn" onclick="upload()">Загрузить</button>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Все права защищены</p>
+  </footer>
+
+  <script>
+    async function upload() {
+      const fileInput = document.getElementById('file');
+      if (!fileInput.files.length) {
+        return alert('Пожалуйста, выберите файл');
+      }
+
+      const fd = new FormData();
+      fd.append('file', fileInput.files[0]);
+
+      try {
+        const response = await fetch('/api/upload', { method: 'POST', body: fd });
+        const result = await response.text();
+        alert(result);
+      } catch (err) {
+        console.error(err);
+        alert('Ошибка при загрузке файла');
+      }
+    }
+  </script>
+</body>
+</html>

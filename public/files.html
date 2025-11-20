@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Файлы</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Файлы</h1>
+    <p>Скачивайте доступные файлы</p>
+  </header>
+
+  <main>
+    <ul id="list" class="file-list"></ul>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Все права защищены</p>
+  </footer>
+
+  <script>
+    async function load() {
+      try {
+        let response = await fetch('/api/files');
+        if (!response.ok) return alert('Не авторизован');
+        let files = await response.json();
+        const list = document.getElementById('list');
+        list.innerHTML = ''; // очистка перед добавлением
+        files.forEach(file => {
+          const li = document.createElement('li');
+          li.className = 'file-item';
+          li.innerHTML = `
+            <span>${file.originalname}</span>
+            <a class="download-btn" href="/download/${file.id}">Скачать</a>
+          `;
+          list.appendChild(li);
+        });
+      } catch (err) {
+        console.error(err);
+        alert('Ошибка при загрузке файлов');
+      }
+    }
+    load();
+  </script>
+</body>
+</html>

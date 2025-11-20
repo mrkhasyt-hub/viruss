@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Регистрация</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Регистрация</h1>
+    <p>Создайте новый аккаунт</p>
+  </header>
+
+  <main>
+    <div class="form-container">
+      <input id="u" class="input-field" placeholder="Логин">
+      <input id="p" class="input-field" type="password" placeholder="Пароль">
+      <button class="btn form-btn" onclick="reg()">Создать</button>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Все права защищены</p>
+  </footer>
+
+  <script>
+    async function reg() {
+      const username = document.getElementById('u').value.trim();
+      const password = document.getElementById('p').value;
+
+      if(!username || !password) return alert('Заполните все поля');
+
+      try {
+        const r = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (r.ok) {
+          location.href = 'login.html';
+        } else {
+          alert('Имя занято или ошибка регистрации');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Ошибка при регистрации');
+      }
+    }
+  </script>
+</body>
+</html>
