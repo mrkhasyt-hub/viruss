@@ -5,24 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Главная</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
   <header>
-    <h1>Добро пожаловать</h1>
-    <p>Бета-Тест</p>
+    <h1>Добро пожаловать!</h1>
+    <p id="dynamic-text">Бета-Тест сервиса</p>
   </header>
 
   <main>
+    <!-- Приветственная карточка -->
+    <div class="welcome-card">
+      <h2>Приветствуем вас на платформе!</h2>
+      <p>Здесь вы можете загружать файлы, просматривать их и управлять своим аккаунтом.</p>
+    </div>
+
+    <!-- Основная навигация с иконками -->
     <nav class="main-nav">
-      <a class="btn" href="login.html">Войти</a>
-      <a class="btn" href="register.html">Регистрация</a>
-      <a class="btn" href="files.html">Файлы</a>
-      <a class="btn" href="upload.html">Загрузить</a>
+      <a class="btn" href="login.html"><i class="fa fa-sign-in-alt"></i> Войти</a>
+      <a class="btn" href="register.html"><i class="fa fa-user-plus"></i> Регистрация</a>
+      <a class="btn" href="files.html"><i class="fa fa-folder-open"></i> Файлы</a>
+      <a class="btn" href="upload.html"><i class="fa fa-upload"></i> Загрузить</a>
     </nav>
+
+    <!-- Счётчик посещений -->
+    <p id="visitor-count" style="margin-top:1rem; text-align:center; color:#ccc;"></p>
   </main>
 
   <footer>
-    <p>&copy; 2025</p>
+    <p>&copy; 2025 Все права защищены</p>
   </footer>
-</body>
-</html>
+
+  <script>
+    // Динамический текст
+    const texts = ["Бета-Тест сервиса", "Загружайте файлы быстро", "Следите за обновлениями"];
+    let i = 0;
+    const dynamicTextEl = document.getElementById('dynamic
