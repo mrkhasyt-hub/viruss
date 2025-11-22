@@ -9,7 +9,7 @@
 <body>
   <header>
     <h1>Файлы</h1>
-    <p>Скачивайте доступные файлы</p>
+    <p>Скачивайте доступные файлы и читайте сообщения</p>
   </header>
 
   <main>
@@ -23,25 +23,40 @@
   <script>
     async function load() {
       try {
-        let response = await fetch('/api/files');
+        let response = await fetch('/api/messages');
         if (!response.ok) return alert('Не авторизован');
-        let files = await response.json();
+
+        let items = await response.json();
         const list = document.getElementById('list');
         list.innerHTML = ''; // очистка перед добавлением
-        files.forEach(file => {
+
+        if(items.length === 0) {
+          const li = document.createElement('li');
+          li.textContent = 'Нет файлов или сообщений';
+          list.appendChild(li);
+          return;
+        }
+
+        items.forEach(item => {
           const li = document.createElement('li');
           li.className = 'file-item';
-          li.innerHTML = `
-            <span>${file.originalname}</span>
-            <a class="download-btn" href="/download/${file.id}">Скачать</a>
-          `;
+
+          let content = `<strong>Сообщение:</strong> ${item.message || 'Без сообщения'}`;
+          if(item.filename) {
+            content += `<br>
+                        <span>Файл:</span> ${item.originalname} 
+                        <a class="download-btn" href="/download/${item.id}">Скачать</a>`;
+          }
+
+          li.innerHTML = content;
           list.appendChild(li);
         });
       } catch (err) {
         console.error(err);
-        alert('Ошибка при загрузке файлов');
+        alert('Ошибка при загрузке файлов и сообщений');
       }
     }
+
     load();
   </script>
 </body>
