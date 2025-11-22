@@ -14,17 +14,24 @@ app.use(express.static("public"));
 app.post("/api/register", auth.register);
 app.post("/api/login", auth.login);
 
-// UPLOAD
-app.post("/api/upload", checkAuth, upload.uploadFile, upload.saveFileToDB);
+// UPLOAD (файл + сообщение)
+app.post("/api/upload", checkAuth, upload.uploadFile, upload.saveFileAndMessage);
 
-// FILE LIST
+// Получение сообщений с файлами (если есть)
+app.get("/api/messages", checkAuth, upload.getMessages);
+
+// FILE LIST (только файлы)
 app.get("/api/files", checkAuth, (req, res) => {
-    db.all("SELECT * FROM files", [], (err, rows) => res.json(rows));
+    db.all("SELECT * FROM files", [], (err, rows) => {
+        if(err) return res.status(500).send("Ошибка при получении файлов");
+        res.json(rows);
+    });
 });
 
 // DOWNLOAD
 app.get("/download/:id", checkAuth, (req, res) => {
     db.get("SELECT * FROM files WHERE id=?", [req.params.id], (err, file) => {
+        if(err) return res.status(500).send("Ошибка при получении файла");
         if (!file) return res.status(404).send("Нет файла");
         res.download(__dirname + "/uploads/" + file.filename, file.originalname);
     });
