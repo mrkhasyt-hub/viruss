@@ -3,20 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Загрузка файла</title>
+  <title>Загрузка файла и сообщения</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
-    <h1>Загрузить файл</h1>
-    <p>Выберите файл и нажмите "Загрузить"</p>
+    <h1>Загрузить файл и сообщение</h1>
+    <p>Выберите файл и/или напишите сообщение, затем нажмите "Загрузить"</p>
   </header>
 
   <main>
     <div class="upload-container">
-      <input type="file" id="file" class="file-input">
+      <input type="file" id="file" class="file-input"><br><br>
+      <textarea id="message" placeholder="Введите сообщение..." rows="4" cols="50"></textarea><br><br>
       <button class="btn upload-btn" onclick="upload()">Загрузить</button>
     </div>
+
+    <hr>
+
+    <h2>Сообщения</h2>
+    <div id="messages-container"></div>
   </main>
 
   <footer>
@@ -26,22 +32,71 @@
   <script>
     async function upload() {
       const fileInput = document.getElementById('file');
-      if (!fileInput.files.length) {
-        return alert('Пожалуйста, выберите файл');
+      const messageInput = document.getElementById('message');
+      const fd = new FormData();
+
+      if (fileInput.files.length) {
+        fd.append('file', fileInput.files[0]);
       }
 
-      const fd = new FormData();
-      fd.append('file', fileInput.files[0]);
+      if (messageInput.value.trim()) {
+        fd.append('message', messageInput.value.trim());
+      }
+
+      if (!fileInput.files.length && !messageInput.value.trim()) {
+        return alert('Выберите файл или введите сообщение');
+      }
 
       try {
-        const response = await fetch('/api/upload', { method: 'POST', body: fd });
-        const result = await response.text();
-        alert(result);
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: fd
+        });
+        const result = await response.json();
+        alert('Загрузка успешна');
+        messageInput.value = '';
+        fileInput.value = '';
+        loadMessages(); // обновляем список сообщений
       } catch (err) {
         console.error(err);
-        alert('Ошибка при загрузке файла');
+        alert('Ошибка при загрузке');
       }
     }
+
+    async function loadMessages() {
+      const container = document.getElementById('messages-container');
+      container.innerHTML = 'Загрузка...';
+
+      try {
+        const res = await fetch('/api/messages');
+        const messages = await res.json();
+
+        if (!messages.length) {
+          container.innerHTML = '<p>Сообщений нет</p>';
+          return;
+        }
+
+        container.innerHTML = '';
+        messages.forEach(msg => {
+          const div = document.createElement('div');
+          div.className = 'message-item';
+
+          let content = `<p><strong>User ${msg.user_id}:</strong> ${msg.message || ''}</p>`;
+          if (msg.filename) {
+            content += `<p>Файл: <a href="/uploads/${msg.filename}" target="_blank">${msg.originalname}</a></p>`;
+          }
+
+          div.innerHTML = content;
+          container.appendChild(div);
+        });
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = '<p>Ошибка при загрузке сообщений</p>';
+      }
+    }
+
+    // Загрузка сообщений при открытии страницы
+    window.onload = loadMessages;
   </script>
 </body>
 </html>
