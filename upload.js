@@ -19,41 +19,63 @@ module.exports = {
     // Мидлвар для загрузки файла
     uploadFile: upload.single("file"),
 
-    // Сохранение файла и сообщения в базе
+    // Сохранение файла и/или сообщения
     saveFileAndMessage: (req, res) => {
-        const message = req.body.message || ""; // текст сообщения, если есть
+        const message = req.body.message || "";
 
         if (!req.file && !message) {
             return res.status(400).send("Нет файла или сообщения");
         }
 
-        // Если есть файл — сохраняем в таблицу files
-        if (req.file) {
+        if (req.file && message) {
+            // Сохраняем сообщение и файл вместе
             db.run(
-                "INSERT INTO files(user_id, filename, originalname, size, message) VALUES (?,?,?,?,?)",
-                [req.user.id, req.file.filename, req.file.originalname, req.file.size, message],
-                function (err) {
-                    if (err) return res.status(500).send("Ошибка при сохранении файла");
+                "INSERT INTO messages(user_id, message) VALUES (?,?)",
+                [req.user.id, message],
+                function(err) {
+                    if (err) return res.status(500).send("Ошибка при сохранении сообщения");
+                    const messageId = this.lastID;
+
+                    db.run(
+                        "INSERT INTO files(user_id, filename, originalname, size, message_id) VALUES (?,?,?,?,?)",
+                        [req.user.id, req.file.filename, req.file.originalname, req.file.size, messageId],
+                        function(err) {
+                            if(err) return res.status(500).send("Ошибка при сохранении файла");
+                            res.send({ status: "ok", messageId, fileId: this.lastID });
+                        }
+                    );
+                }
+            );
+        } else if (req.file) {
+            // Только файл
+            db.run(
+                "INSERT INTO files(user_id, filename, originalname, size) VALUES (?,?,?,?)",
+                [req.user.id, req.file.filename, req.file.originalname, req.file.size],
+                function(err) {
+                    if(err) return res.status(500).send("Ошибка при сохранении файла");
                     res.send({ status: "ok", fileId: this.lastID });
                 }
             );
         } else {
-            // Только сообщение без файла
+            // Только сообщение
             db.run(
                 "INSERT INTO messages(user_id, message) VALUES (?,?)",
                 [req.user.id, message],
-                function (err) {
-                    if (err) return res.status(500).send("Ошибка при сохранении сообщения");
+                function(err) {
+                    if(err) return res.status(500).send("Ошибка при сохранении сообщения");
                     res.send({ status: "ok", messageId: this.lastID });
                 }
             );
         }
     },
 
-    // Загрузка сообщений из базы
+    // Получение всех сообщений с файлами (если есть)
     getMessages: (req, res) => {
         db.all(
-            "SELECT m.id, m.user_id, m.message, f.filename, f.originalname FROM messages m LEFT JOIN files f ON m.id = f.message_id ORDER BY m.id DESC",
+            `SELECT m.id, m.user_id, m.message, f.filename, f.originalname 
+             FROM messages m 
+             LEFT JOIN files f ON f.message_id = m.id
+             ORDER BY m.id DESC`,
             [],
             (err, rows) => {
                 if (err) return res.status(500).send("Ошибка при получении сообщений");
