@@ -35,29 +35,21 @@
       const messageInput = document.getElementById('message');
       const fd = new FormData();
 
-      if (fileInput.files.length) {
-        fd.append('file', fileInput.files[0]);
-      }
-
-      if (messageInput.value.trim()) {
-        fd.append('message', messageInput.value.trim());
-      }
+      if (fileInput.files.length) fd.append('file', fileInput.files[0]);
+      if (messageInput.value.trim()) fd.append('message', messageInput.value.trim());
 
       if (!fileInput.files.length && !messageInput.value.trim()) {
         return alert('Выберите файл или введите сообщение');
       }
 
       try {
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          body: fd
-        });
-        const result = await response.json();
+        const res = await fetch('/api/upload', { method: 'POST', body: fd });
+        const result = await res.json();
         alert('Загрузка успешна');
         messageInput.value = '';
         fileInput.value = '';
-        loadMessages(); // обновляем список сообщений
-      } catch (err) {
+        loadMessages();
+      } catch(err) {
         console.error(err);
         alert('Ошибка при загрузке');
       }
@@ -65,37 +57,40 @@
 
     async function loadMessages() {
       const container = document.getElementById('messages-container');
-      container.innerHTML = 'Загрузка...';
+      container.innerHTML = '<p>Загрузка...</p>';
 
       try {
         const res = await fetch('/api/messages');
         const messages = await res.json();
+        container.innerHTML = '';
 
-        if (!messages.length) {
+        if(!messages.length) {
           container.innerHTML = '<p>Сообщений нет</p>';
           return;
         }
 
-        container.innerHTML = '';
         messages.forEach(msg => {
           const div = document.createElement('div');
           div.className = 'message-item';
 
           let content = `<p><strong>User ${msg.user_id}:</strong> ${msg.message || ''}</p>`;
-          if (msg.filename) {
-            content += `<p>Файл: <a href="/uploads/${msg.filename}" target="_blank">${msg.originalname}</a></p>`;
+          if(msg.filename) {
+            content += `<p>Файл: <strong>${msg.originalname}</strong> 
+                        <a class="btn download-btn" href="/download/${msg.id}" target="_blank">Скачать</a></p>`;
+          }
+          if(msg.created_at) {
+            content += `<small>Дата: ${new Date(msg.created_at).toLocaleString()}</small>`;
           }
 
           div.innerHTML = content;
           container.appendChild(div);
         });
-      } catch (err) {
+      } catch(err) {
         console.error(err);
         container.innerHTML = '<p>Ошибка при загрузке сообщений</p>';
       }
     }
 
-    // Загрузка сообщений при открытии страницы
     window.onload = loadMessages;
   </script>
 </body>
